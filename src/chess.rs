@@ -62,6 +62,9 @@ impl ChessMap {
 
 	pub fn legal_moves(&self, location: u64) -> Vec<u64> {
 		let mut valid_moves = Vec::new();
+        if location >= 0o100{
+            return valid_moves;
+        }
 		let piece = match (&self).board.get(&location) {
 			Some(x) 	=> 	x,
 			None		=>	return valid_moves,

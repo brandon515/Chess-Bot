@@ -28,7 +28,10 @@ fn parse_command(cmd: &String) -> Option<String> {
 	let cmd_type = &cmd[cmd_begin..cmd_end];
 	if cmd_type == "!version"{
 		Some(format!("{} V. 0.3.0", get_nick()))
-	}else{
+	}else if cmd_type == "!new"{
+        None
+    }
+    else{
 		None
 	}
 }
@@ -38,8 +41,16 @@ fn parse_message(msg: String) -> Option<String>{
 	for part in msg.split(" "){
 		msg_parts.push(part.to_string());
 	};
-	if msg_parts.get(0).unwrap() == "PING"{
-		let response_message = format!("PONG {}", msg_parts.get(1).unwrap());
+	if msg.find("PING") != None{
+        let res_begin = match msg.find(" "){
+            Some(x) =>  x,
+            None    =>  return None,
+        };
+        let res_end = match msg.find("\r\n"){
+            Some(x) =>  x,
+            None    =>  return None,
+        };
+		let response_message = format!("PONG {}", &msg[res_begin..res_end]);
 		return Some(response_message);
 	}else if msg_parts.get(1).unwrap() == "PRIVMSG"{
 		let target = msg_parts.get(2).unwrap();
@@ -74,7 +85,7 @@ fn main() {
 			let mut buffer: [u8; 512] = [0; 512];
 			let bytes = thread_stream.read(&mut buffer).unwrap();
 			//the [0..bytes-2] is to cut off the trailing zeroes and the \r\n that fucks with the formatting
-			let buffer_string = if buffer[bytes-1..bytes] == [13,10]{
+			let buffer_string = if bytes != 0 && buffer[bytes-1..bytes] == [13,10]{
 				String::from_utf8_lossy(&buffer[0..bytes-2])
 			}else{
 				String::from_utf8_lossy(&buffer[0..bytes])
