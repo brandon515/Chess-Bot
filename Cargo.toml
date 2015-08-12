@@ -1,0 +1,12 @@
+[package]
+name = "ircbot"
+version = "0.3.0"
+authors = ["Brandon <brandon.haley94@gmail.com>"]
+
+[[bin]]
+
+name = "irc_bot_man"
+
+[dependencies]
+rustc-serialize = "0.3"
+num = "0.1.25"
