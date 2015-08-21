@@ -16,57 +16,42 @@ fn get_channel() -> &'static str {
 	"#bottester"
 }
 
-fn parse_command(cmd: &String) -> Option<String> {
-	let cmd_begin = match cmd.find(|x| x == '!'){
-		Some(x)	=>	x,
-		None	=>	return None,
-	};
-	let cmd_end = match cmd.find(|x| x == ' ' || x == '\r'){
-		Some(x)	=>	x,
-		None	=>	return None,
-	};
-	let cmd_type = &cmd[cmd_begin..cmd_end];
-	if cmd_type == "!version"{
-		Some(format!("{} V. 0.3.0", get_nick()))
-	}else if cmd_type == "!new"{
-        None
-    }
-    else{
-		None
-	}
-}
-
 fn parse_message(msg: String) -> Option<String>{
 	let mut msg_parts: Vec<String> = Vec::new();
 	for part in msg.split(" "){
 		msg_parts.push(part.to_string());
 	};
-	if msg.find("PING") != None{
+	if msg.contains("PING"){
         let res_begin = match msg.find(" "){
             Some(x) =>  x,
             None    =>  return None,
         };
-        let res_end = match msg.find("\r\n"){
-            Some(x) =>  x,
-            None    =>  return None,
-        };
-		let response_message = format!("PONG {}", &msg[res_begin..res_end]);
-		return Some(response_message);
-	}else if msg_parts.get(1).unwrap() == "PRIVMSG"{
+		let response_message = format!("PONG {}\r\n", &msg[res_begin..msg.len()]);
+		Some(response_message)
+	}else if msg.contains("PRIVMSG"){
 		let target = msg_parts.get(2).unwrap();
 		//dont respond to PMs only public messages
 		if target == get_channel(){
-			let cmd = msg_parts.get(3).unwrap();
-			match parse_command(cmd){
-				Some(response_body)	=>	{
-					let response_message = format!("PRIVMSG {} :{}\r\n", get_channel(), response_body);
-					return Some(response_message);
-				}
-				None				=>	return None,
-			};
+            let cmd_begin = match msg.find(|x| x == '!'){
+                Some(x)	=>	x,
+                None	=>	return None,
+            };
+            let cmd_end = match cmd.find(|x| x == ' ' || x == '\r'){
+                Some(x)	=>	x,
+                None	=>	return None,
+            };
+            let cmd_type = &cmd[cmd_begin..cmd_end];
+            if cmd_type == "!version"{
+                let response_body = format!("{} V. 0.3.0", get_nick());
+            }else if cmd_type == "!new"{
+                None
+            }
+            let response_message = format!("PRIVMSG {} :{}\r\n", get_channel(), response_body);
+            Some(response_message)
 		}
-	}
-	None
+	}else{
+        None
+    }
 }
 
 fn convert_to_server(input: &str) -> String {
